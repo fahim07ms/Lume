@@ -1,0 +1,166 @@
+.root {
+    /* CSS Color Variables */
+    --white: #fafafaff;
+    --primary-black: #1b1b1fff;
+    --secondary-black: #252529ff;
+    --icon-color: #c7c7ccff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Alice', 'Comfortaa', sans-serif;
+    font-size: 20px;
+    line-height: 1.75;
+    color: #fafafaff;
+    background-color: #1b1b1fff;
+}
+
+.book-container {
+    column-width: 42vw;
+    column-gap: 40px;
+    column-fill: auto;
+
+    height: 100vh;
+    padding: 20px;
+
+    background-color: #1b1b1fff;
+
+    transform: translateX(0px);
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Chapter styling */
+.chapter-break {
+    break-before: column;
+    margin-bottom: 2em;
+}
+
+.chapter-title, .lume-title {
+    font-size: 1.8em;
+    font-weight: bolder;
+    text-align: center;
+    margin: 1em 0 2em 0;
+    color: #c7c7ccff;
+    break-after: avoid;
+}
+
+
+.lume-subtitle {
+    margin-top: 1.5em;
+    margin-bottom: 1em;
+    color: #c7c7ccff;
+    break-after: avoid;
+}
+
+.lume-section {
+    margin-bottom: 1em;
+}
+
+.lume-paragraph {
+    margin: 30px 10px;
+    text-align: justify;
+    text-indent: 1.5em;
+    orphans: 2;
+    widows: 2;
+}
+
+img, .lume-img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1em auto;
+
+    /* Primary fix: Prevent breaking inside columns */
+    break-inside: avoid;
+    page-break-inside: avoid;
+
+    /* Alternative fix: Force to new column if needed */
+    break-before: auto;
+
+    /* Ensure image fits within column width */
+    max-width: calc(42vw - 40px); /* column-width minus some padding */
+
+    /* For WebView compatibility */
+    -webkit-column-break-inside: avoid;
+
+    /* Additional spacing to prevent awkward positioning */
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+}
+
+
+.lume-navigation {
+    margin: 1em 0;
+    padding-left: 2em;
+    font-size: 18px;
+}
+
+blockquote {
+    margin: 1em 2em;
+    padding-left: 1em;
+    border-left: 3px solid #ccc;
+    font-style: italic;
+}
+
+/* Ensure proper page breaks */
+.page-break {
+    break-before: column;
+}
+
+.no-break {
+    break-inside: avoid;
+}
+
+.spacial-paragraph {
+    font-style: italic;
+    color: #7f8c8d;
+}
+
+.spacer-paragraph {
+    height: 1.5em;
+}
+
+.lume-chapter {
+    font-size: 1.5em;
+    margin-top: 3em;
+    margin-bottom: 2em;
+    border-bottom: 2px solid #ecf0f1;
+    padding-bottom: 0.5em;
+}
+
+a[href] {
+    color: #fa4624;
+}
+
+td {
+    font-size: 1.2em;
+    padding: 10px;
+}
+
+thead {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.lume-img {
+    /* Force column break before large images if needed */
+    break-before: auto;
+
+    /* Ensure proper containment */
+    width: auto;
+    max-height: 80vh; /* Prevent images from being too tall */
+
+    /* Better margins for epub context */
+    margin: 2em auto;
+
+    /* Additional WebKit support */
+    -webkit-column-break-inside: avoid;
+    -webkit-column-break-before: auto;
+}

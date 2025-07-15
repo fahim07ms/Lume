@@ -17,6 +17,10 @@ public class SubTitleVBox extends VBox {
         // Set label text, className
         this.subTitleText.setText(subTitleText);
         this.subTitleText.getStyleClass().add("subtitle-text");
+        this.subTitleText.setStyle("""
+                    -fx-font-weight: 700;
+                    -fx-padding: 5px 0px;
+                """);
 
         // Add label to the VBox
         this.getChildren().add(this.subTitleText);

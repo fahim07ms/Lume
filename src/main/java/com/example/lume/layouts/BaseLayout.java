@@ -4,8 +4,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 
 public class BaseLayout extends Parent {
@@ -33,7 +33,8 @@ public class BaseLayout extends Parent {
         leftSidePanel.getStyleClass().add("left-side-panel");
         leftSidePanel.setAlignment(Pos.TOP_CENTER);
         leftSidePanel.setPrefSize(leftSidePanelWidth, leftSidePanelHeight);
-        leftSidePanel.setPadding(new Insets(20, 20, 20, 20));
+        leftSidePanel.setPadding(new Insets(10, 15, 20, 15));
+        leftSidePanel.setBorder(new Border(new BorderStroke(Color.rgb(87, 87, 87, 0.94), BorderStrokeStyle.SOLID, null, new BorderWidths(0, 0.5, 0, 0))));
 
         ScrollPane scrollPane = new ScrollPane(leftSidePanel);
         scrollPane.setFitToWidth(true);

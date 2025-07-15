@@ -11,11 +11,11 @@ import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
@@ -30,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 public class BookViewScene extends BaseLayout {
@@ -75,8 +76,12 @@ public class BookViewScene extends BaseLayout {
     // EPub Book (epublib)
     Book book;
 
-    public BookViewScene(Stage stage, String filePath) throws IOException {
+    Scene prevScene;
+
+    public BookViewScene(Stage stage, Scene prevScene, String filePath) throws IOException {
         super();
+
+        this.prevScene = prevScene;
 
         // Load the epub book
         EpubReader epubReader = new EpubReader();
@@ -102,9 +107,71 @@ public class BookViewScene extends BaseLayout {
         // Add title bar to right side panel
         rightSidePanel.getChildren().add(titleBar);
 
+        tocPanelTopBar(stage);
+        bookShortDetails();
+
         // Show book in single web view
         showBookInWebView();
         setupKeyboardNavigation();
+    }
+
+    private void tocPanelTopBar(Stage stage) {
+        HBox topBar = new HBox();
+        ButtonIcon backBtn = new ButtonIcon("M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0");
+        backBtn.setOnAction(e -> {
+            stage.setScene(prevScene);
+        });
+        backBtn.setMaxSize(10, 10);
+
+
+        topBar.setPadding(new Insets(0, 5, 5, 5));
+        topBar.setSpacing(10);
+        topBar.setAlignment(Pos.TOP_LEFT);
+        topBar.getStyleClass().add("toc-panel-top-bar");
+        topBar.getChildren().addAll(backBtn);
+
+        leftSidePanel.getChildren().add(topBar);
+    }
+
+    private void bookShortDetails() throws IOException {
+        BorderPane shortBookDetails = new BorderPane();
+        shortBookDetails.getStyleClass().add("book-short-details");
+        shortBookDetails.setPadding(new Insets(20, 5, 30, 5));
+        shortBookDetails.setPrefSize(this.getRightSidePanelWidth(), 200);
+
+        // Show cover image
+        Image smallCoverImg = new Image(new ByteArrayInputStream(book.getCoverImage().getData()));
+        ImageView smallCoverImgView = new ImageView();
+        smallCoverImgView.setImage(smallCoverImg);
+        smallCoverImgView.getStyleClass().add("book-short-details-img");
+
+        smallCoverImgView.setPreserveRatio(true);
+        smallCoverImgView.setFitWidth(100);
+
+        // Show title and author
+        VBox titleAndAuthor = new VBox();
+        titleAndAuthor.setSpacing(10);
+        titleAndAuthor.setAlignment(Pos.TOP_LEFT);
+        titleAndAuthor.getStyleClass().add("book-short-details-title-author");
+
+        Label title = new Label(book.getTitle());
+        title.getStyleClass().add("book-short-details-title");
+        titleAndAuthor.getChildren().addAll(title);
+        title.setStyle("""
+                    -fx-spacing: 100px;
+                    -fx-font-weight: 700;
+                """);
+
+        for (Author author : book.getMetadata().getAuthors()) {
+            Label authorName = new Label(author.getFirstname() + " " + author.getLastname()) ;
+            authorName.getStyleClass().add("book-short-details-author");
+            titleAndAuthor.getChildren().addAll(authorName);
+        }
+
+        shortBookDetails.setCenter(titleAndAuthor);
+        shortBookDetails.setLeft(smallCoverImgView);
+
+        leftSidePanel.getChildren().add(shortBookDetails);
     }
 
     public void showBookInWebView() {
@@ -222,10 +289,9 @@ public class BookViewScene extends BaseLayout {
         // Generate Jsoup format of the Navigation Control file for XML
         String ncx = new String(book.getNcxResource().getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         Document docNcx = Jsoup.parse(ncx);
-        System.out.println(docNcx);
 
         // Add the title of the left side panel
-        leftSidePanel.getChildren().add(new SubTitleVBox(this.getRightSidePanelWidth(), 50, docNcx.getElementsByTag("docTitle").text()));
+        leftSidePanel.getChildren().add(new SubTitleVBox(this.getRightSidePanelWidth(), 20, "Table of Contents"));
 
         // Get the NavMap of the NCX
         Element navMap = docNcx.select("navMap").first();
@@ -451,7 +517,7 @@ public class BookViewScene extends BaseLayout {
         controls.setPadding(new Insets(10));
         controls.setAlignment(Pos.BOTTOM_CENTER);
 
-        ButtonIcon prevButton = new ButtonIcon("M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5z");
+        ButtonIcon prevButton = new ButtonIcon("M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0");
         prevButton.setOnAction(e -> {
             if (currentSpreadIndex > 0) {
                 currentSpreadIndex--;
@@ -460,7 +526,7 @@ public class BookViewScene extends BaseLayout {
             }
         });
 
-        ButtonIcon nextButton = new ButtonIcon("M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0M4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5z");
+        ButtonIcon nextButton = new ButtonIcon("M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708");
         nextButton.setOnAction(e -> {
             if (currentSpreadIndex < totalSpreads - 1) {
                 currentSpreadIndex++;

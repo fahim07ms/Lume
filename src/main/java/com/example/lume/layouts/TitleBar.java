@@ -10,6 +10,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.shape.SVGPath;
 import javafx.stage.Stage;
 
+import java.io.File;
+
 public class TitleBar extends BorderPane {
 
     private ButtonIcon closeBtnIcon;
@@ -47,8 +49,12 @@ public class TitleBar extends BorderPane {
 
         // Set title, className and alignment for the title bar label
         this.titleBarText = new Label();
-        this.titleBarText.getStyleClass().add("title-bar-text");
+//        this.titleBarText.getStyleClass().add("title-bar-text");
         this.titleBarText.setAlignment(Pos.CENTER);
+        this.titleBarText.setStyle("""
+                    -fx-font-size: 20px;
+                    -fx-font-weight: bolder;
+                """);
 
         // Set the title bar label at the center of the border pane
         this.setCenter(this.titleBarText);

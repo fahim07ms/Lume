@@ -29,6 +29,9 @@ public class SidePanelOption extends HBox {
         iconButton.setContentDisplay(ContentDisplay.LEFT);
         iconButton.getStyleClass().add("option-btn");
         iconButton.setPadding(new Insets(10, 0, 10, 15));
+        iconButton.setStyle("""
+                    -fx-font-weight: 400;
+                """);
 
         // Button text color and width, height
         iconButton.setTextFill(Color.rgb(250, 250, 250));

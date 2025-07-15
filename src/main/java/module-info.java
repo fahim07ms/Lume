@@ -6,7 +6,8 @@ module com.example.lume {
     requires epub4j.core;
     requires javafx.web;
     requires org.jsoup;
-
+    requires com.fasterxml.jackson.core;
+    requires com.fasterxml.jackson.databind;
 
     opens com.example.lume to javafx.fxml;
     exports com.example.lume;

@@ -1,19 +1,29 @@
 package com.example.lume.scenes;
 
-import com.example.lume.components.SidePanelOption;
-import com.example.lume.components.SubTitleVBox;
+import com.example.lume.components.*;
 import com.example.lume.layouts.BaseLayout;
 import com.example.lume.layouts.TitleBar;
+import io.documentnode.epub4j.domain.Author;
+import io.documentnode.epub4j.domain.Book;
+import io.documentnode.epub4j.epub.EpubReader;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import java.io.File;
-import java.io.IOException;
+
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -30,8 +40,12 @@ public class LibraryLayout extends BaseLayout {
             "All Books");
     public SubTitleVBox subTitleCatalog = new SubTitleVBox(400, 40, "Catalog");
 
-    public LibraryLayout(Stage stage) {
+    public static LumeMetadata lumeMetadata;
+    Stage stage;
+
+    public  LibraryLayout(Stage stage) {
         super();
+        this.stage = stage;
 
         // Title of Left side panel
         titleText.getStyleClass().add("title-text");
@@ -66,12 +80,12 @@ public class LibraryLayout extends BaseLayout {
 
         // Add Plus Icon to title bar (On opening shows the library)
         titleBar.setLeftBtn("M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4", "Open a Book");
-        titleBar.getLeftBtn().setOnAction(e -> showBookViewScene(stage));
+        titleBar.getLeftBtn().setOnAction(e -> showBookViewScene());
 
         loadLibrary();
     }
 
-    private String fileChooser(Stage stage) {
+    private String fileChooser() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("EPUB Files", "*.epub")
@@ -107,23 +121,148 @@ public class LibraryLayout extends BaseLayout {
             // Create metadata file if already doesn't exist
             Path metaFilePath = lumeFolderPath.resolve("metadata.json");
             if (!Files.exists(metaFilePath)) {
+                // Ask user if he/she wants to load epub files from device automatically
                 try {
                     Files.createFile(metaFilePath);
+                    System.out.println("Created metadata.json file in " + lumeFolderPath);
+
+                    System.out.println("Searching for epub files...");
+
+                    Path startDir = Paths.get(System.getProperty("user.home"));
+
+//                    List<Path> epubFiles = new ArrayList<>();
+//
+//                    Files.walk(startDir)
+//                            .filter(path -> {
+//                                try {
+//                                    if (!Files.isReadable(path)) return false;
+//
+//                                    return path.toString().endsWith(".epub");
+//                                } catch (Exception e) {
+//                                    System.out.println("Access denied: " + path);
+//                                    return false;
+//                                }
+//                            })
+//                            .forEach(epubFiles::add);
+//
+//                    lumeMetadata = loadMetadataFromEpubFiles(epubFiles);
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.writeValue(metaFilePath.toFile(), lumeMetadata);
+
                 } catch (IOException e) {
                     System.out.println(e.getMessage());
-                    e.printStackTrace();
                 }
             }
 
-            
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                lumeMetadata = objectMapper.readValue(metaFilePath.toFile(), LumeMetadata.class);
+
+                if (lumeMetadata == null) {
+                    lumeMetadata = new LumeMetadata();
+                }
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
+
+            if (lumeMetadata == null || lumeMetadata.getBookMetaDataMap().isEmpty()) {
+                showEmptyLibraryRightSidePanel();
+            } else {
+                showLibraryWithBooks();
+            }
+
         }
     }
 
-    private void showBookViewScene(Stage stage) {
+    private void showLibraryWithBooks() {
+        HBox libraryBox = new HBox();
+        for (BookMetadata bookMetadata : lumeMetadata.getBookMetaDataMap().values()) {
+            BookDisplay bookDisplay = new BookDisplay(bookMetadata);
+            libraryBox.getChildren().add(bookDisplay);
+        }
+
+        rightSidePanel.getChildren().add(libraryBox);
+    }
+
+    private void showEmptyLibraryRightSidePanel() {
+        // Show in the library that user's library is empty
+        VBox emptyLibraryBox = new VBox();
+        emptyLibraryBox.setAlignment(Pos.CENTER);
+        emptyLibraryBox.setPadding(new Insets(10, 10, 10, 10));
+        emptyLibraryBox.setPrefSize(this.getRightSidePanelWidth(), this.getRightSidePanelHeight() - 100);
+
+        Label emptyLibraryHeading = new Label("Library is empty");
+        emptyLibraryHeading.getStyleClass().add("empty-library-heading");
+        emptyLibraryHeading.setPadding(new Insets(0, 0, 20, 0));
+        emptyLibraryHeading.setStyle("""
+                            -fx-font-size: 36px;
+                            -fx-font-weight: 800;
+                        """);
+
+        Label emptyLibrarySubHeading = new Label("Open a book from device to start reading");
+        emptyLibrarySubHeading.getStyleClass().add("empty-library-subheading");
+        emptyLibrarySubHeading.setPadding(new Insets(0, 0, 20, 0));
+        emptyLibrarySubHeading.setStyle("""
+                            -fx-font-size: 20px;
+                            -fx-font-weight: 500;
+                        """);
+
+        ButtonIcon openBookBtn = new ButtonIcon("");
+        openBookBtn.setText("Open Book");
+        openBookBtn.setAlignment(Pos.CENTER);
+        openBookBtn.setStyle("""
+                     -fx-font-weight: 600;
+                """);
+        openBookBtn.setMaxSize(180, 50);
+        openBookBtn.setOnAction(e -> {
+            showBookViewScene();
+        });
+
+        VBox.getVgrow(emptyLibraryBox);
+        emptyLibraryBox.getChildren().addAll(emptyLibraryHeading, emptyLibrarySubHeading, openBookBtn);
+        rightSidePanel.getChildren().add(emptyLibraryBox);
+    }
+
+    private LumeMetadata loadMetadataFromEpubFiles(List<Path> epubFiles) {
+        LumeMetadata lumeMetadata = new LumeMetadata();
+
+        for (Path epubFile : epubFiles) {
+            try {
+                EpubReader epubReader = new EpubReader();
+                Book book = epubReader.readEpub(new FileInputStream(epubFile.toFile()));
+
+                List<String> authors = new ArrayList<>();
+                for (Author author : book.getMetadata().getAuthors()) {
+                    authors.add(author.getFirstname() + " " + author.getLastname());
+                }
+
+                BookMetadata bookMetadata = new BookMetadata(
+                        book.getTitle(),
+                        authors,
+                        -1,
+                        0,
+                        epubFile.toString(),
+                        "unknown");
+
+                String bookUUID = UUID.randomUUID().toString();
+                lumeMetadata.addBookMetadata(bookUUID, bookMetadata);
+                lumeMetadata.addCategory("unknown", bookUUID);
+                System.out.println("Added " +  epubFile.toString());
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                System.out.println("Cannot open load epub file: " + epubFile.toString());
+            }
+        }
+
+        return lumeMetadata;
+    }
+
+    private void showBookViewScene() {
         Scene bookViewScene;
         try {
-            String filePath = fileChooser(stage);
-            bookViewScene = new Scene(new BookViewScene(stage, stage.getScene(), filePath), this.getHomeLayoutWidth(), this.getHomeLayoutHeight());
+            String filePath = fileChooser();
+            bookViewScene = new Scene(new BookViewScene(stage, stage.getScene(), filePath, lumeMetadata), this.getHomeLayoutWidth(), this.getHomeLayoutHeight());
         } catch (IOException e) {
             System.out.println(e.getMessage());
             return;

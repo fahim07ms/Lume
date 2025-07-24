@@ -9,8 +9,10 @@ module com.example.lume {
     requires com.fasterxml.jackson.core;
     requires com.fasterxml.jackson.databind;
 
+
+
     opens com.example.lume to javafx.fxml;
     exports com.example.lume;
     exports com.example.lume.components;
-    opens com.example.lume.components to javafx.fxml;
+    opens com.example.lume.components to javafx.fxml, com.fasterxml.jackson.databind;
 }

@@ -1,16 +1,20 @@
 package com.example.lume.layouts;
 
 import com.example.lume.components.ButtonIcon;
+import com.example.lume.scenes.LibraryLayout;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.shape.Path;
 import javafx.scene.shape.SVGPath;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.io.IOException;
 
 public class TitleBar extends BorderPane {
 
@@ -45,7 +49,16 @@ public class TitleBar extends BorderPane {
 
         // Set minimize and close button actions
         minimizeBtnIcon.setOnAction(e -> stage.setIconified(true));
-        closeBtnIcon.setOnAction(e -> stage.close());
+        closeBtnIcon.setOnAction(e -> {
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                objectMapper.writeValue(new File("/home/fahim07/.lume/metadata.json"), LibraryLayout.lumeMetadata);
+            } catch (IOException ex) {
+                System.out.println(ex.getMessage());
+            }
+
+            stage.close();
+        });
 
         // Set title, className and alignment for the title bar label
         this.titleBarText = new Label();

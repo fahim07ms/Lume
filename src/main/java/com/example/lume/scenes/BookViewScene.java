@@ -1,10 +1,9 @@
 package com.example.lume.scenes;
 
-import com.example.lume.components.ButtonIcon;
-import com.example.lume.components.SidePanelOption;
-import com.example.lume.components.SubTitleVBox;
+import com.example.lume.components.*;
 import com.example.lume.layouts.BaseLayout;
 import com.example.lume.layouts.TitleBar;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.documentnode.epub4j.domain.*;
 import io.documentnode.epub4j.epub.EpubReader;
 import javafx.application.Platform;
@@ -78,14 +77,25 @@ public class BookViewScene extends BaseLayout {
 
     Scene prevScene;
 
-    public BookViewScene(Stage stage, Scene prevScene, String filePath) throws IOException {
+    String filePath;
+
+    LumeMetadata lumeMetadata;
+
+    public BookViewScene(Stage stage, Scene prevScene, String filePath, LumeMetadata lumeMetadata) throws IOException {
         super();
 
         this.prevScene = prevScene;
 
+        this.filePath = filePath;
+
+        this.lumeMetadata = lumeMetadata;
+
         // Load the epub book
         EpubReader epubReader = new EpubReader();
         book = epubReader.readEpub(new FileInputStream(filePath));
+
+        // Get Metadata
+
 
         // Set total width of the webview as right side panel width
         totalWidth = this.getRightSidePanelWidth();
@@ -119,6 +129,23 @@ public class BookViewScene extends BaseLayout {
         HBox topBar = new HBox();
         ButtonIcon backBtn = new ButtonIcon("M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0");
         backBtn.setOnAction(e -> {
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<String> authors = new ArrayList<>();
+            for (Author author : book.getMetadata().getAuthors()) {
+                authors.add(author.getFirstname() + " " + author.getLastname());
+            }
+
+            BookMetadata metadata = new BookMetadata(
+                    book.getTitle(),
+                    authors,
+                    totalSpreads,
+                    currentSpreadIndex,
+                    filePath,
+                    "last_read"
+            );
+
+            LibraryLayout.lumeMetadata.addBookMetadata(UUID.randomUUID().toString(), metadata);
+
             stage.setScene(prevScene);
         });
         backBtn.setMaxSize(10, 10);
@@ -188,6 +215,7 @@ public class BookViewScene extends BaseLayout {
 
             // Load EPUB content
             loadBook();
+
 
             // Add navigation controls
             addNavigationControls(rightSidePanel);

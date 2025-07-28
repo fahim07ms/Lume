@@ -3,6 +3,7 @@ package com.example.lume.scenes;
 import com.example.lume.components.*;
 import com.example.lume.layouts.BaseLayout;
 import com.example.lume.layouts.TitleBar;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.documentnode.epub4j.domain.*;
 import io.documentnode.epub4j.epub.EpubReader;
@@ -11,7 +12,9 @@ import javafx.concurrent.Worker;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -29,7 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class BookViewScene extends BaseLayout {
@@ -55,6 +58,8 @@ public class BookViewScene extends BaseLayout {
     private static final String SECTION_CLASS = "lume-section";
     private static final String SUBTITLE_CLASS = "lume-subtitle";
 
+    private static final String HIGHLIGHTER_PATH = "M11.096.644a2 2 0 0 1 2.791.036l1.433 1.433a2 2 0 0 1 .035 2.791l-.413.435-8.07 8.995a.5.5 0 0 1-.372.166h-3a.5.5 0 0 1-.234-.058l-.412.412A.5.5 0 0 1 2.5 15h-2a.5.5 0 0 1-.354-.854l1.412-1.412A.5.5 0 0 1 1.5 12.5v-3a.5.5 0 0 1 .166-.372l8.995-8.07zm-.115 1.47L2.727 9.52l3.753 3.753 7.406-8.254zm3.585 2.17.064-.068a1 1 0 0 0-.017-1.396L13.18 1.387a1 1 0 0 0-1.396-.018l-.068.065zM5.293 13.5 2.5 10.707v1.586L3.707 13.5z";
+
     // List to hold the Fragment ID's
     Set<String> listOfFragmentId = new LinkedHashSet<>();
 
@@ -75,11 +80,17 @@ public class BookViewScene extends BaseLayout {
     // EPub Book (epublib)
     Book book;
 
+    // Previous scene
     Scene prevScene;
 
+    // File path of the book that is opened
     String filePath;
 
+    // Metadata holding object
     LumeMetadata lumeMetadata;
+
+    // List of annotations
+    List<Annotation> annotations = new ArrayList<>();
 
     public BookViewScene(Stage stage, Scene prevScene, String filePath, LumeMetadata lumeMetadata) throws IOException {
         super();
@@ -90,12 +101,17 @@ public class BookViewScene extends BaseLayout {
 
         this.lumeMetadata = lumeMetadata;
 
+        lumeMetadata.getBookMetaDataMap().forEach((k, v) -> {
+            if (v.getFilePath().equals(filePath)) {
+                annotations = v.getAnnotations();
+                currentSpreadIndex = v.getCurrentSpread();
+                totalSpreads = v.getTotalSpread();
+            }
+        });
+
         // Load the epub book
         EpubReader epubReader = new EpubReader();
         book = epubReader.readEpub(new FileInputStream(filePath));
-
-        // Get Metadata
-
 
         // Set total width of the webview as right side panel width
         totalWidth = this.getRightSidePanelWidth();
@@ -123,28 +139,84 @@ public class BookViewScene extends BaseLayout {
         // Show book in single web view
         showBookInWebView();
         setupKeyboardNavigation();
+
+        setAnnotateMenu();
+
+    }
+
+    private void setAnnotateMenu() {
+        // Context menu for showing annotation button
+        ContextMenu annotateMenu = new ContextMenu();
+        annotateMenu.setAutoHide(true);
+        annotateMenu.setHideOnEscape(true);
+        annotateMenu.setPrefSize(100, 300);
+
+        annotateMenu.getStyleClass().add("highlighter-menu");
+
+        // Context menu items
+        MenuItem red = new MenuItem("Red");
+        MenuItem green = new MenuItem("Green");
+        MenuItem yellow = new MenuItem("Yellow");
+        MenuItem cyan = new MenuItem("Cyan");
+
+        red.setOnAction(e -> setAnnotations("red"));
+        green.setOnAction(e -> setAnnotations("green"));
+        yellow.setOnAction(e -> setAnnotations("yellow"));
+        cyan.setOnAction(e -> setAnnotations("cyan"));
+
+        annotateMenu.getItems().addAll(red, green, yellow, cyan);
+
+        // Enable context menu on right clicking the WebView
+        bookWebView.setContextMenuEnabled(false);
+        bookWebView.setOnContextMenuRequested(event -> {
+            annotateMenu.show(bookWebView, event.getSceneX(), event.getSceneY());
+        });
+    }
+
+    private void setAnnotations(String color) {
+        String annotationLoc = (String) bookWebEngine.executeScript("annotate('%s', '%s')".formatted(color, UUID.randomUUID()));
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            Annotation annotation = objectMapper.readValue(annotationLoc, Annotation.class);
+            annotations.add(annotation);
+        } catch (Exception exc) {
+            System.out.println("Exception while reading annotation: " + exc.getMessage());
+            exc.printStackTrace();
+        }
     }
 
     private void tocPanelTopBar(Stage stage) {
         HBox topBar = new HBox();
         ButtonIcon backBtn = new ButtonIcon("M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0");
         backBtn.setOnAction(e -> {
-            ObjectMapper objectMapper = new ObjectMapper();
-            List<String> authors = new ArrayList<>();
-            for (Author author : book.getMetadata().getAuthors()) {
-                authors.add(author.getFirstname() + " " + author.getLastname());
+            AtomicBoolean fileExists = new AtomicBoolean(false);
+
+            lumeMetadata.getBookMetaDataMap().forEach((k, v) -> {
+                if (v.getFilePath().equals(filePath)) {
+                    fileExists.set(true);
+                    v.setAnnotations(annotations);
+                    v.setCurrentSpread(currentSpreadIndex);
+                }
+            });
+
+            if (!fileExists.get()) {
+                List<String> authors = new ArrayList<>();
+                for (Author author : book.getMetadata().getAuthors()) {
+                    authors.add(author.getFirstname() + " " + author.getLastname());
+                }
+
+                BookMetadata metadata = new BookMetadata(
+                        book.getTitle(),
+                        authors,
+                        totalSpreads,
+                        currentSpreadIndex,
+                        filePath,
+                        "last_read",
+                        annotations
+                );
+
+                LibraryLayout.lumeMetadata.addBookMetadata(UUID.randomUUID().toString(), metadata);
             }
-
-            BookMetadata metadata = new BookMetadata(
-                    book.getTitle(),
-                    authors,
-                    totalSpreads,
-                    currentSpreadIndex,
-                    filePath,
-                    "last_read"
-            );
-
-            LibraryLayout.lumeMetadata.addBookMetadata(UUID.randomUUID().toString(), metadata);
 
             stage.setScene(prevScene);
         });
@@ -175,12 +247,13 @@ public class BookViewScene extends BaseLayout {
         smallCoverImgView.setPreserveRatio(true);
         smallCoverImgView.setFitWidth(100);
 
-        // Show title and author
+        // Show author and title vertically
         VBox titleAndAuthor = new VBox();
         titleAndAuthor.setSpacing(10);
         titleAndAuthor.setAlignment(Pos.TOP_LEFT);
         titleAndAuthor.getStyleClass().add("book-short-details-title-author");
 
+        // Title
         Label title = new Label(book.getTitle());
         title.getStyleClass().add("book-short-details-title");
         titleAndAuthor.getChildren().addAll(title);
@@ -189,6 +262,7 @@ public class BookViewScene extends BaseLayout {
                     -fx-font-weight: 700;
                 """);
 
+        // Author
         for (Author author : book.getMetadata().getAuthors()) {
             Label authorName = new Label(author.getFirstname() + " " + author.getLastname()) ;
             authorName.getStyleClass().add("book-short-details-author");
@@ -263,7 +337,11 @@ public class BookViewScene extends BaseLayout {
                     processContent(body);
 
                     body.select("img").forEach(element -> {
-                        Set<String> keys = imgResource.keySet().stream().filter(s -> element.attr("src").contains(s)).collect(Collectors.toSet());
+                        Set<String> keys = imgResource
+                                                .keySet()
+                                                .stream()
+                                                .filter(s -> element.attr("src")
+                                                                          .contains(s)).collect(Collectors.toSet());
 
                         element.attr("src", imgResource.get(keys.toArray()[0]));
                         element.addClass("lume-img");
@@ -422,11 +500,23 @@ public class BookViewScene extends BaseLayout {
         File bookCssFile = new File("src/main/resources/com/example/lume/bookView.css");
         String css = Files.readString(Paths.get(bookCssFile.getAbsolutePath()));
 
+        File annotateJSFile = new File("src/main/resources/com/example/lume/annotate.js");
+        String annotateJS = Files.readString(Paths.get(annotateJSFile.getAbsolutePath()));
+
         // Structure the HTML
-        String html = String.format(
-                "<html><head><style>%s</style></head><body><div class='book-container'><img src='%s' class='lume-img'>" +
-                        "%s</div></body></html>",
-                css, coverImg, fullBookContent
+        String html = String.format("""
+                   <html>
+                        <head>
+                            <style>%s</style>
+                        </head>
+                        <body>
+                            <div class='book-container'><img src='%s' class='lume-img'>%s</div>
+                        </body>
+                        <script>
+                            %s
+                        </script>
+                   </html>""",
+                css, coverImg, fullBookContent, annotateJS
         );
 
         // Load content
@@ -441,12 +531,32 @@ public class BookViewScene extends BaseLayout {
                         Thread.sleep(100);
 
                         // Calculate the spread and display the current one
-                        calculateTotalSpreads();
+                        if (totalSpreads == 0) calculateTotalSpreads();
                         displayCurrentSpread();
+
+                        if (!annotations.isEmpty()) {
+                            ObjectMapper objectMapper = new ObjectMapper();
+                            annotations.forEach(annotation -> {
+                                String annotationStr = null;
+                                try {
+                                    annotationStr = objectMapper.writeValueAsString(annotation);
+                                    System.out.println("Restoring annotation: " + annotationStr);
+
+                                    // Execute and check result
+                                    Object result = bookWebEngine.executeScript("restoreAnnotation(" + annotationStr + ")");
+                                    System.out.println("Annotation result: " + result);
+
+                                } catch (JsonProcessingException e) {
+                                    System.out.println("Error in displaying annotations: " + e.getMessage());
+                                }
+                            });
+                        }
+
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
                 });
+
             }
         });
     }

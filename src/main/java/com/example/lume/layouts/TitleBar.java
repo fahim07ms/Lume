@@ -52,7 +52,7 @@ public class TitleBar extends BorderPane {
         closeBtnIcon.setOnAction(e -> {
             ObjectMapper objectMapper = new ObjectMapper();
             try {
-                objectMapper.writeValue(new File("/home/fahim07/.lume/metadata.json"), LibraryLayout.lumeMetadata);
+                objectMapper.writeValue(new File(System.getProperty("user.home") + "/.lume/metadata.json"), LibraryLayout.lumeMetadata);
             } catch (IOException ex) {
                 System.out.println(ex.getMessage());
             }

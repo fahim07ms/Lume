@@ -122,3 +122,10 @@
 .book-short-details-title-author {
     -fx-padding: 10 20;
 }
+
+.highlighter-menu {
+    -fx-background-color: rgba(54, 54, 56, 0.93);
+    -fx-border-color: transparent;
+    -fx-border-radius: 10px;
+    -fx-spacing: 10px;
+}

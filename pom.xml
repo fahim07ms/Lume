@@ -117,5 +117,12 @@
                 </executions>
             </plugin>
         </plugins>
+
+
+        <resources>
+            <resource>
+                <directory>src/main/resources/com/example/lume</directory>
+            </resource>
+        </resources>
     </build>
 </project>

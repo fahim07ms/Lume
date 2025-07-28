@@ -3,6 +3,7 @@ package com.example.lume.components;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BookMetadata {
@@ -12,6 +13,7 @@ public class BookMetadata {
     private int currentSpread;
     private String filePath;
     private String category;
+    private List<Annotation> annotations;
 
     @JsonCreator
     public BookMetadata(
@@ -20,7 +22,8 @@ public class BookMetadata {
             @JsonProperty("totalSpread") int totalSpread,
             @JsonProperty("currentSpread") int currentSpread,
             @JsonProperty("filePath") String filePath,
-            @JsonProperty("category") String category
+            @JsonProperty("category") String category,
+            @JsonProperty("annotations") List<Annotation> annotations
     ) {
         this.title = title;
         this.authors = authors;
@@ -28,6 +31,7 @@ public class BookMetadata {
         this.currentSpread = currentSpread;
         this.filePath = filePath;
         this.category = category;
+        this.annotations = annotations != null ? annotations : new ArrayList<>();
     }
 
     public String getTitle() { return title; }
@@ -42,6 +46,8 @@ public class BookMetadata {
 
     public String getCategory() { return category; }
 
+    public List<Annotation> getAnnotations() { return annotations; }
+
     public void setTitle(String title) { this.title = title; }
 
     public void setAuthors(List<String> authors) { this.authors = authors; }
@@ -53,4 +59,6 @@ public class BookMetadata {
     public void setFilePath(String filePath) { this.filePath = filePath; }
 
     public void setCategory(String category) { this.category = category; }
+
+    public void setAnnotations(List<Annotation> annotations) { this.annotations = annotations; }
 }

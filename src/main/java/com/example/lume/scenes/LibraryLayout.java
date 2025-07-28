@@ -102,33 +102,33 @@ public class LibraryLayout extends BaseLayout {
     }
 
     private void loadLibrary() {
-        if (System.getProperty("os.name").toLowerCase().contains("windows")) {}
-        else if (System.getProperty("os.name").toLowerCase().contains("linux")) {
-            // Create lume folder if already doesn't exists
-            Path lumeFolderPath = Paths.get(String.format("%s/.lume", System.getProperty("user.home")));
-            if (!Files.exists(lumeFolderPath)) {
-                File lumeDirectory = new File(lumeFolderPath.toString());
-                boolean created = lumeDirectory.mkdirs();
+//        if (System.getProperty("os.name").toLowerCase().contains("windows")) {}
+//        else if (System.getProperty("os.name").toLowerCase().contains("linux")) {
+        // Create lume folder if already doesn't exists
+        Path lumeFolderPath = Paths.get(String.format("%s/.lume", System.getProperty("user.home")));
+        if (!Files.exists(lumeFolderPath)) {
+            File lumeDirectory = new File(lumeFolderPath.toString());
+            boolean created = lumeDirectory.mkdirs();
 
-                if (created) {
-                    System.out.println("Created Lume directory");
-                } else {
-                    System.out.println("Failed to create Lume directory");
-                    System.exit(-1);
-                }
+            if (created) {
+                System.out.println("Created Lume directory");
+            } else {
+                System.out.println("Failed to create Lume directory");
+                System.exit(-1);
             }
+        }
 
-            // Create metadata file if already doesn't exist
-            Path metaFilePath = lumeFolderPath.resolve("metadata.json");
-            if (!Files.exists(metaFilePath)) {
-                // Ask user if he/she wants to load epub files from device automatically
-                try {
-                    Files.createFile(metaFilePath);
-                    System.out.println("Created metadata.json file in " + lumeFolderPath);
+        // Create metadata file if already doesn't exist
+        Path metaFilePath = lumeFolderPath.resolve("metadata.json");
+        if (!Files.exists(metaFilePath)) {
+            // Ask user if he/she wants to load epub files from device automatically
+            try {
+                Files.createFile(metaFilePath);
+                System.out.println("Created metadata.json file in " + lumeFolderPath);
 
-                    System.out.println("Searching for epub files...");
+                System.out.println("Searching for epub files...");
 
-                    Path startDir = Paths.get(System.getProperty("user.home"));
+                Path startDir = Paths.get(System.getProperty("user.home"));
 
 //                    List<Path> epubFiles = new ArrayList<>();
 //
@@ -147,31 +147,29 @@ public class LibraryLayout extends BaseLayout {
 //
 //                    lumeMetadata = loadMetadataFromEpubFiles(epubFiles);
 
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    objectMapper.writeValue(metaFilePath.toFile(), lumeMetadata);
-
-                } catch (IOException e) {
-                    System.out.println(e.getMessage());
-                }
-            }
-
-            try {
                 ObjectMapper objectMapper = new ObjectMapper();
-                lumeMetadata = objectMapper.readValue(metaFilePath.toFile(), LumeMetadata.class);
+                objectMapper.writeValue(metaFilePath.toFile(), lumeMetadata);
 
-                if (lumeMetadata == null) {
-                    lumeMetadata = new LumeMetadata();
-                }
             } catch (IOException e) {
                 System.out.println(e.getMessage());
             }
+        }
 
-            if (lumeMetadata == null || lumeMetadata.getBookMetaDataMap().isEmpty()) {
-                showEmptyLibraryRightSidePanel();
-            } else {
-                showLibraryWithBooks();
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            lumeMetadata = objectMapper.readValue(metaFilePath.toFile(), LumeMetadata.class);
+
+            if (lumeMetadata == null) {
+                lumeMetadata = new LumeMetadata();
             }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
 
+        if (lumeMetadata == null || lumeMetadata.getBookMetaDataMap().isEmpty()) {
+            showEmptyLibraryRightSidePanel();
+        } else {
+            showLibraryWithBooks();
         }
     }
 
@@ -224,44 +222,45 @@ public class LibraryLayout extends BaseLayout {
         rightSidePanel.getChildren().add(emptyLibraryBox);
     }
 
-    private LumeMetadata loadMetadataFromEpubFiles(List<Path> epubFiles) {
-        LumeMetadata lumeMetadata = new LumeMetadata();
-
-        for (Path epubFile : epubFiles) {
-            try {
-                EpubReader epubReader = new EpubReader();
-                Book book = epubReader.readEpub(new FileInputStream(epubFile.toFile()));
-
-                List<String> authors = new ArrayList<>();
-                for (Author author : book.getMetadata().getAuthors()) {
-                    authors.add(author.getFirstname() + " " + author.getLastname());
-                }
-
-                BookMetadata bookMetadata = new BookMetadata(
-                        book.getTitle(),
-                        authors,
-                        -1,
-                        0,
-                        epubFile.toString(),
-                        "unknown");
-
-                String bookUUID = UUID.randomUUID().toString();
-                lumeMetadata.addBookMetadata(bookUUID, bookMetadata);
-                lumeMetadata.addCategory("unknown", bookUUID);
-                System.out.println("Added " +  epubFile.toString());
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                System.out.println("Cannot open load epub file: " + epubFile.toString());
-            }
-        }
-
-        return lumeMetadata;
-    }
+//    private LumeMetadata loadMetadataFromEpubFiles(List<Path> epubFiles) {
+//        LumeMetadata lumeMetadata = new LumeMetadata();
+//
+//        for (Path epubFile : epubFiles) {
+//            try {
+//                EpubReader epubReader = new EpubReader();
+//                Book book = epubReader.readEpub(new FileInputStream(epubFile.toFile()));
+//
+//                List<String> authors = new ArrayList<>();
+//                for (Author author : book.getMetadata().getAuthors()) {
+//                    authors.add(author.getFirstname() + " " + author.getLastname());
+//                }
+//
+//                BookMetadata bookMetadata = new BookMetadata(
+//                        book.getTitle(),
+//                        authors,
+//                        -1,
+//                        0,
+//                        epubFile.toString(),
+//                        "unknown");
+//
+//                String bookUUID = UUID.randomUUID().toString();
+//                lumeMetadata.addBookMetadata(bookUUID, bookMetadata);
+//                lumeMetadata.addCategory("unknown", bookUUID);
+//                System.out.println("Added " +  epubFile.toString());
+//            } catch (Exception e) {
+//                System.out.println(e.getMessage());
+//                System.out.println("Cannot open load epub file: " + epubFile.toString());
+//            }
+//        }
+//
+//        return lumeMetadata;
+//    }
 
     private void showBookViewScene() {
         Scene bookViewScene;
         try {
             String filePath = fileChooser();
+
             bookViewScene = new Scene(new BookViewScene(stage, stage.getScene(), filePath, lumeMetadata), this.getHomeLayoutWidth(), this.getHomeLayoutHeight());
         } catch (IOException e) {
             System.out.println(e.getMessage());
@@ -270,7 +269,7 @@ public class LibraryLayout extends BaseLayout {
 
         try {
             File file = new File("src/main/resources/com/example/lume/styles.css");
-            bookViewScene.getStylesheets().add("file://" + file.getAbsolutePath().replace("\\", "/"));
+            bookViewScene.getStylesheets().add("file:////" + file.getAbsolutePath().replace("\\", "/"));
         } catch (NullPointerException e) {
             System.out.println(e.getMessage());
         }

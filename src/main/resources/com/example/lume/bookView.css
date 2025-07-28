@@ -164,3 +164,7 @@ thead {
     -webkit-column-break-inside: avoid;
     -webkit-column-break-before: auto;
 }
+
+.lume-highlighted-text {
+    background-color: red;
+}

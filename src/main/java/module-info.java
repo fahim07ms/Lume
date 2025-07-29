@@ -9,6 +9,7 @@ module com.example.lume {
     requires com.fasterxml.jackson.core;
     requires com.fasterxml.jackson.databind;
     requires jdk.jsobject;
+    requires java.net.http;
 
 
     opens com.example.lume to javafx.fxml;

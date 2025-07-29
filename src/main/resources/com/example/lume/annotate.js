@@ -7,6 +7,20 @@ function annotate(color, annotationId) {
         /* Get the range and surround it with a span */
         let range = selection.getRangeAt(0);
         let span = document.createElement('span');
+        if (color === 'red') {
+            span.style.backgroundColor = 'rgba(255, 56, 83, 0.6)';
+        } else if (color === 'yellow') {
+            span.style.backgroundColor = 'rgba(255, 204, 0, 0.6)';
+        } else if (color === 'green') {
+            span.style.backgroundColor = 'rgba(0, 255, 128, 0.6)';
+        } else if (color === 'cyan') {
+            span.style.backgroundColor = 'rgba(139, 241, 241, 0.6)';
+        }
+
+        if (location.color) {
+            span.setAttribute('data-color', location.color);
+        }
+
         span.classList.add('lume-highlighted-text');
         span.id = annotationId;
 
@@ -27,7 +41,7 @@ function annotate(color, annotationId) {
 function getSelectedTextLoc(range)
 {
     let parent = range.startContainer.parentNode;
-    while (parent && parent.parentNode && parent.parentNode.id) {
+    while (parent && !parent.id) {
         parent = parent.parentNode;
     }
 
@@ -74,13 +88,13 @@ function restoreAnnotation(location) {
         // If the end of the selection is in this node
         if (foundStart && (charIndex + nodeLength) >= location.end) {
             range.setEnd(node, location.end - charIndex);
-            break; // We've found the end, so we're done
+            break;
         }
 
         charIndex += nodeLength;
     }
 
-    // Check if the range is valid and not collapsed
+    // Check if the range is valid
     if (range.collapsed) {
         console.error("Range is collapsed - no content to annotate");
         return null;
@@ -92,27 +106,87 @@ function restoreAnnotation(location) {
         span.classList.add('lume-highlighted-text');
         span.id = location.annotationId;
 
-        // Try surroundContents first - it's cleaner when it works
-        if (range.startContainer === range.endContainer &&
-            range.startContainer.nodeType === Node.TEXT_NODE) {
-            // Simple case: selection is within a single text node
-            range.surroundContents(span);
-        } else {
-            // Complex case: selection spans multiple nodes or elements
-            // Clone the contents instead of extracting them
-            let contents = range.cloneContents();
-
-            // Clear the original range content
-            range.deleteContents();
-
-            // Add the cloned content to our span
-            span.appendChild(contents);
-
-            // Insert the span at the range position
-            range.insertNode(span);
+        // Add color as a data attribute or class for CSS targeting
+        if (location.color) {
+            span.setAttribute('data-color', location.color);
         }
 
-        return true; // Success
+        // Try the simple approach first
+        try {
+            range.surroundContents(span);
+            return true;
+        } catch (e) {
+            // Alternative approach that preserves whitespace better
+            let fragment = document.createDocumentFragment();
+
+            // Get all nodes that intersect with our range
+            let iterator = document.createNodeIterator(
+                range.commonAncestorContainer,
+                NodeFilter.SHOW_ALL,
+                {
+                    acceptNode: function(node) {
+                        if (range.intersectsNode(node)) {
+                            return NodeFilter.FILTER_ACCEPT;
+                        }
+                        return NodeFilter.FILTER_REJECT;
+                    }
+                }
+            );
+
+            let node;
+            let nodes = [];
+            while (node = iterator.nextNode()) {
+                if (range.intersectsNode(node) && node.nodeType === Node.TEXT_NODE) {
+                    nodes.push(node);
+                }
+            }
+
+            // Process each text node that intersects with our range
+            for (let textNode of nodes) {
+                let nodeStart = 0;
+                let nodeEnd = textNode.textContent.length;
+
+                // Calculate the intersection with our range
+                let tempRange = document.createRange();
+                tempRange.selectNodeContents(textNode);
+
+                if (range.compareBoundaryPoints(Range.START_TO_START, tempRange) > 0) {
+                    nodeStart = range.startOffset;
+                }
+
+                if (range.compareBoundaryPoints(Range.END_TO_END, tempRange) < 0) {
+                    nodeEnd = range.endOffset;
+                }
+
+                if (nodeStart < nodeEnd) {
+                    // Split the text node and wrap the middle part
+                    let beforeText = textNode.textContent.substring(0, nodeStart);
+                    let selectedText = textNode.textContent.substring(nodeStart, nodeEnd);
+                    let afterText = textNode.textContent.substring(nodeEnd);
+
+                    let parentElement = textNode.parentNode;
+
+                    // Create new nodes
+                    let beforeNode = beforeText ? document.createTextNode(beforeText) : null;
+                    let selectedSpan = span.cloneNode();
+                    selectedSpan.textContent = selectedText;
+                    let afterNode = afterText ? document.createTextNode(afterText) : null;
+
+                    // Replace the original text node
+                    if (beforeNode) parentElement.insertBefore(beforeNode, textNode);
+                    parentElement.insertBefore(selectedSpan, textNode);
+                    if (afterNode) parentElement.insertBefore(afterNode, textNode);
+
+                    parentElement.removeChild(textNode);
+
+                    // Update span reference to the one we actually inserted
+                    span = selectedSpan;
+                    break; // For now, handle only the first intersecting node
+                }
+            }
+        }
+
+        return true;
     } catch (error) {
         console.error("Error creating annotation:", error);
         return false;

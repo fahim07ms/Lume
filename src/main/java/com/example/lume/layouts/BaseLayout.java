@@ -14,12 +14,12 @@ public class BaseLayout extends Parent {
     public VBox leftSidePanel;
     public VBox rightSidePanel;
     
-    private double homeLayoutWidth = Screen.getPrimary().getVisualBounds().getWidth();
-    private double homeLayoutHeight = Screen.getPrimary().getVisualBounds().getHeight();
-    private double leftSidePanelWidth = 400;
-    private double leftSidePanelHeight = homeLayoutHeight;
-    private double rightSidePanelWidth = homeLayoutWidth - leftSidePanelWidth;
-    private double rightSidePanelHeight = homeLayoutHeight;
+    static double homeLayoutWidth = Screen.getPrimary().getVisualBounds().getWidth();
+    static double homeLayoutHeight = Screen.getPrimary().getVisualBounds().getHeight();
+    static double leftSidePanelWidth = 400;
+    static double leftSidePanelHeight = homeLayoutHeight;
+    static double rightSidePanelWidth = homeLayoutWidth - leftSidePanelWidth;
+    static double rightSidePanelHeight = homeLayoutHeight;
     
     public BaseLayout() {
         super();
@@ -36,12 +36,12 @@ public class BaseLayout extends Parent {
         leftSidePanel.setPadding(new Insets(10, 15, 20, 15));
         leftSidePanel.setBorder(new Border(new BorderStroke(Color.rgb(87, 87, 87, 0.94), BorderStrokeStyle.SOLID, null, new BorderWidths(0, 0.5, 0, 0))));
 
-        ScrollPane scrollPane = new ScrollPane(leftSidePanel);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setFitToHeight(true);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setPrefSize(leftSidePanelWidth, leftSidePanelHeight);
+        ScrollPane leftScrollPane = new ScrollPane(leftSidePanel);
+        leftScrollPane.setFitToWidth(true);
+        leftScrollPane.setFitToHeight(true);
+        leftScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        leftScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        leftScrollPane.setPrefSize(leftSidePanelWidth, leftSidePanelHeight);
 
         
         // Set up right side panel width, height, className, position
@@ -50,34 +50,38 @@ public class BaseLayout extends Parent {
         rightSidePanel.setAlignment(Pos.TOP_CENTER);
         rightSidePanel.setPrefSize(rightSidePanelWidth, rightSidePanelHeight);
 
-        homeLayout.getChildren().addAll(scrollPane, rightSidePanel);
+        ScrollPane rightScrollPane = new ScrollPane(rightSidePanel);
+        rightScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        rightScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+
+        homeLayout.getChildren().addAll(leftScrollPane, rightScrollPane);
 
         this.getChildren().add(homeLayout);
     }
 
-    public void setHomeLayoutWidth(double width) {
-        homeLayoutWidth = width;
-    }
-
-    public void setHomeLayoutHeight(double height) {
-        homeLayoutHeight = height;
-    }
-
-    public void setLeftSidePanelWidth(double width) {
-        leftSidePanelWidth = width;
-    }
-
-    public void setLeftSidePanelHeight(double height) {
-        leftSidePanelHeight = height;
-    }
-
-    public void setRightSidePanelWidth(double width) {
-        rightSidePanelWidth = width;
-    }
-
-    public void setRightSidePanelHeight(double height) {
-        rightSidePanelHeight = height;
-    }
+//    public void setHomeLayoutWidth(double width) {
+//        homeLayoutWidth = width;
+//    }
+//
+//    public void setHomeLayoutHeight(double height) {
+//        homeLayoutHeight = height;
+//    }
+//
+//    public void setLeftSidePanelWidth(double width) {
+//        leftSidePanelWidth = width;
+//    }
+//
+//    public void setLeftSidePanelHeight(double height) {
+//        leftSidePanelHeight = height;
+//    }
+//
+//    public void setRightSidePanelWidth(double width) {
+//        rightSidePanelWidth = width;
+//    }
+//
+//    public void setRightSidePanelHeight(double height) {
+//        rightSidePanelHeight = height;
+//    }
 
     public double getHomeLayoutHeight() {
         return homeLayoutHeight;

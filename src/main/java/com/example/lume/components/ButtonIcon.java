@@ -31,4 +31,6 @@ public class ButtonIcon extends Button {
     void setSvgIcon(String svgPath) {
         this.svgIcon.setContent(svgPath);
     }
+
+    SVGPath getSvgIcon() { return svgIcon; }
 }

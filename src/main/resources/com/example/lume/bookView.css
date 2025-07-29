@@ -165,6 +165,34 @@ thead {
     -webkit-column-break-before: auto;
 }
 
-.lume-highlighted-text {
-    background-color: red;
+.lume-highlighted-text[data-color="red"] {
+    background-color: rgba(255, 56, 83, 0.6);
 }
+
+.lume-highlighted-text[data-color="yellow"] {
+    background-color: rgba(255, 204, 0, 0.6);
+}
+
+.lume-highlighted-text[data-color="green"] {
+    background-color: rgba(0, 255, 128, 0.6);
+}
+
+.lume-highlighted-text[data-color="cyan"] {
+    background-color: rgba(139, 241, 241, 0.6);
+}
+
+/*.lume-highlighted-red {*/
+/*    background-color: rgba(255, 56, 83, 0.6);*/
+/*}*/
+
+/*.lume-highlighted-yellow {*/
+/*    background-color: rgba(255, 204, 0, 0.6);*/
+/*}*/
+
+/*.lume-highlighted-green {*/
+/*    background-color: rgba(0, 255, 128, 0.6);*/
+/*}*/
+
+/*.lume-highlighted-cyan {*/
+/*    background-color: rgba(139, 241, 241, 0.6);*/
+/*}*/

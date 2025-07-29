@@ -2,16 +2,12 @@ package com.example.lume.scenes;
 
 import com.example.lume.components.*;
 import com.example.lume.layouts.BaseLayout;
+import com.example.lume.layouts.BookSelf;
 import com.example.lume.layouts.TitleBar;
-import io.documentnode.epub4j.domain.Author;
-import io.documentnode.epub4j.domain.Book;
-import io.documentnode.epub4j.epub.EpubReader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -20,15 +16,10 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class LibraryLayout extends BaseLayout {
-
     private final String allBooksSVGPath = "M9 3v15h3V3zm3 2l4 13l3-1l-4-13zM5 5v13h3V5zM3 19v2h18v-2z";
     private final String catalogSVGPath = "m12 14l-2-2l2-2l2 2zM9.875 8.471L8.183 6.78l2.68-2.681q.243-.242.54-.354q.299-.111.597-.111t.596.111t.54.354l2.681 2.68l-1.692 1.693L12 6.346zm-3.096 7.346l-2.681-2.68q-.242-.243-.354-.54q-.111-.299-.111-.597t.111-.596t.354-.54l2.68-2.681l1.693 1.692L6.346 12l2.125 2.125zm10.442 0l-1.692-1.692L17.654 12l-2.125-2.125l1.692-1.692l2.681 2.68q.242.243.354.54q.111.299.111.597t-.111.596t-.354.54zm-6.357 4.085l-2.681-2.68l1.692-1.693L12 17.654l2.125-2.125l1.692 1.692l-2.68 2.681q-.243.242-.54.354q-.299.111-.597.111t-.596-.111t-.54-.354";
     public Label titleText = new Label("Lume");
@@ -42,10 +33,18 @@ public class LibraryLayout extends BaseLayout {
 
     public static LumeMetadata lumeMetadata;
     Stage stage;
+    public static BookSelf bookSelf = null;
 
     public  LibraryLayout(Stage stage) {
         super();
         this.stage = stage;
+
+        try {
+            File file = new File("src/main/resources/com/example/lume/styles.css");
+            this.getStylesheets().add("file:////" + file.getAbsolutePath().replace("\\", "/"));
+        } catch (NullPointerException e) {
+            System.out.println(e.getMessage());
+        }
 
         // Title of Left side panel
         titleText.getStyleClass().add("title-text");
@@ -57,16 +56,22 @@ public class LibraryLayout extends BaseLayout {
 
         // Sub Title VBox - Library
         leftSidePanel.getChildren().addAll(titleText, subTitleLibrary, optionAllBooks);
+        optionAllBooks.getIconButton().setStyle("-fx-background-color: rgba(54, 54, 56, 0.93);");
+
+        optionAllBooks.getIconButton().setOnAction(e -> {
+            stage.setScene(this.getScene());
+        });
+
 
         // Sub Title Component - Catalog
         subTitleCatalog.setPadding(new Insets(30, 0, 10, 0));
 
         // Add Menu Option
-        SidePanelOption optionGutenberg = new SidePanelOption(400, 50, catalogSVGPath, "Gutenberg");
-        SidePanelOption optionStandardEbooks = new SidePanelOption(400, 50, catalogSVGPath, "Standard Ebooks");
-        SidePanelOption optionFeedBooks = new SidePanelOption(400, 50, catalogSVGPath, "Feedbooks");
+//        SidePanelOption optionGutenberg = new SidePanelOption(400, 50, catalogSVGPath, "Gutenberg");
+//        SidePanelOption optionStandardEbooks = new SidePanelOption(400, 50, catalogSVGPath, "Standard Ebooks");
+//        SidePanelOption optionFeedBooks = new SidePanelOption(400, 50, catalogSVGPath, "Feedbooks");
 
-        leftSidePanel.getChildren().addAll(subTitleCatalog, optionGutenberg, optionFeedBooks, optionStandardEbooks);
+//        leftSidePanel.getChildren().addAll(subTitleCatalog, optionGutenberg, optionStandardEbooks);
 
         TitleBar titleBar = new TitleBar(this.getRightSidePanelWidth(), 100, stage);;
         try {
@@ -78,11 +83,14 @@ public class LibraryLayout extends BaseLayout {
         // Add title bar to right side panel
         rightSidePanel.getChildren().add(titleBar);
 
+        rightSidePanel.setPadding(new Insets(0, 25, 0, 25));
+
         // Add Plus Icon to title bar (On opening shows the library)
         titleBar.setLeftBtn("M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4", "Open a Book");
         titleBar.getLeftBtn().setOnAction(e -> showBookViewScene());
 
         loadLibrary();
+        System.out.println(lumeMetadata);
     }
 
     private String fileChooser() {
@@ -104,6 +112,8 @@ public class LibraryLayout extends BaseLayout {
     private void loadLibrary() {
 //        if (System.getProperty("os.name").toLowerCase().contains("windows")) {}
 //        else if (System.getProperty("os.name").toLowerCase().contains("linux")) {
+
+
         // Create lume folder if already doesn't exists
         Path lumeFolderPath = Paths.get(String.format("%s/.lume", System.getProperty("user.home")));
         if (!Files.exists(lumeFolderPath)) {
@@ -174,13 +184,17 @@ public class LibraryLayout extends BaseLayout {
     }
 
     private void showLibraryWithBooks() {
-        HBox libraryBox = new HBox();
-        for (BookMetadata bookMetadata : lumeMetadata.getBookMetaDataMap().values()) {
-            BookDisplay bookDisplay = new BookDisplay(bookMetadata);
-            libraryBox.getChildren().add(bookDisplay);
-        }
+        if (bookSelf == null) {
+            bookSelf = new BookSelf();
+            lumeMetadata.getBookMetaDataMap().forEach((id, bookMetaData) -> {
+                BookDisplay bookDisplay = new BookDisplay(stage, id, bookMetaData);
+                bookSelf.addBookDisplay(bookDisplay);
+            });
 
-        rightSidePanel.getChildren().add(libraryBox);
+            bookSelf.setPadding(new Insets(10, 10, 10, 10));
+
+            rightSidePanel.getChildren().add(bookSelf);
+        }
     }
 
     private void showEmptyLibraryRightSidePanel() {
@@ -256,11 +270,83 @@ public class LibraryLayout extends BaseLayout {
 //        return lumeMetadata;
 //    }
 
+//    private void loadGutenbergData() {
+//        rightSidePanel.getChildren().clear();
+//
+//        HttpResponse<String> response = null;
+//        try {
+//            HttpClient client = HttpClient.newBuilder()
+//                    .followRedirects(HttpClient.Redirect.NORMAL)
+//                    .build();
+//            HttpRequest request = HttpRequest.newBuilder()
+//                    .uri(URI.create("https://gutendex.com/books?page=1&languages=en&mime_type=text%2Fhtml&"))
+//                    .build();
+//            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+//
+//            ObjectMapper mapper = new ObjectMapper();
+//
+//            // read the json strings and convert it into JsonNode
+//            JsonNode node = mapper.readTree(response.body());
+//
+//            JsonNode results = node.get("results");
+//            for (JsonNode result : results) {
+//                JsonNode titleText = result.get("title");
+//                JsonNode authorsText = result.get("authors");
+//                JsonNode summaries = result.get("summaries");
+//                JsonNode coverImage = result.get("formats").get("image/jpeg");
+//                JsonNode downloadUrl = result.get("formats").get("application/epub+zip");
+//
+//                System.out.println(coverImage.toString());
+//
+////                VBox bookDetails = new VBox();
+////                bookDetails.setPrefWidth(250);
+////                bookDetails.setSpacing(5);
+////                Image coverImg = new Image(coverImage.toString());
+////                if (coverImg != null) {
+////                    ImageView coverImageView = new ImageView();
+////                    coverImageView.setImage(coverImg);
+////                    coverImageView.getStyleClass().add("book-display-cover-image");
+////                    bookDetails.getChildren().add(coverImageView);
+////                    coverImageView.setPreserveRatio(true);
+////                    coverImageView.setFitWidth(250);
+////                }
+////
+////                HBox titleThreeDot = new HBox();
+////                Region spacer = new Region();
+////                HBox.setHgrow(spacer, Priority.ALWAYS);
+////                titleThreeDot.setPrefWidth(250);
+////                titleThreeDot.setAlignment(Pos.CENTER);
+////
+////                titleThreeDot.setPadding(new Insets(10, 0, 0, 0));
+////
+////                Label title = new Label(titleText.toString());
+////                title.setStyle("""
+////                 -fx-font-weight: 700;
+////                 -fx-font-size: 20px;
+////                """);
+////
+////
+////
+////                titleThreeDot.getChildren().addAll(title);
+////
+////                Label authors = new Label(authorsText.toString());
+////                authors.setStyle("-fx-font-size: 16px;");
+////
+////
+////                bookDetails.getChildren().addAll(titleThreeDot, authors);
+////
+////                rightSidePanel.getChildren().add(bookDetails);
+//            }
+//        } catch (IOException | InterruptedException e) {
+//            System.out.println(e.getMessage());
+//            e.printStackTrace();
+//        }
+//    }
+
     private void showBookViewScene() {
         Scene bookViewScene;
         try {
             String filePath = fileChooser();
-
             bookViewScene = new Scene(new BookViewScene(stage, stage.getScene(), filePath, lumeMetadata), this.getHomeLayoutWidth(), this.getHomeLayoutHeight());
         } catch (IOException e) {
             System.out.println(e.getMessage());

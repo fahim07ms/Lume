@@ -83,6 +83,8 @@ public class TitleBar extends BorderPane {
         return leftBtn;
     }
 
+    public ButtonIcon getCloseBtnIcon() { return closeBtnIcon; }
+
     public void setTitleBarText(String titleBarText) {
         this.titleBarText.setText(titleBarText);
     }

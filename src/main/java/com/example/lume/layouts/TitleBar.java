@@ -1,5 +1,6 @@
 package com.example.lume.layouts;
 
+import com.example.lume.Main;
 import com.example.lume.components.ButtonIcon;
 import com.example.lume.scenes.LibraryLayout;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -58,6 +59,7 @@ public class TitleBar extends BorderPane {
             }
 
             stage.close();
+            Main.networkManager.stop();
         });
 
         // Set title, className and alignment for the title bar label

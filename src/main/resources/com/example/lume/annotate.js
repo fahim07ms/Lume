@@ -22,7 +22,11 @@ function annotate(color, annotationId) {
         }
 
         span.classList.add('lume-highlighted-text');
+        span.style.cursor = 'hand';
         span.id = annotationId;
+        span.addEventListener('click', () => {
+            this.remove();
+        })
 
         range.surroundContents(span);
 
@@ -105,6 +109,7 @@ function restoreAnnotation(location) {
         let span = document.createElement('span');
         span.classList.add('lume-highlighted-text');
         span.id = location.annotationId;
+        span.style.cursor = 'hand';
 
         // Add color as a data attribute or class for CSS targeting
         if (location.color) {
@@ -192,3 +197,4 @@ function restoreAnnotation(location) {
         return false;
     }
 }
+

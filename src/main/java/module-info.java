@@ -10,7 +10,7 @@ module com.example.lume {
     requires com.fasterxml.jackson.databind;
     requires jdk.jsobject;
     requires java.net.http;
-
+    requires google.genai;
 
     opens com.example.lume to javafx.fxml;
     exports com.example.lume;

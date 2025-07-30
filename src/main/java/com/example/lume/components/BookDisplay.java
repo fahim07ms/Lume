@@ -139,10 +139,8 @@ public class BookDisplay extends VBox {
         MenuItem aboutBtn = new MenuItem("About Book");
 
         removeBtn.setOnAction(e -> {
-           String filepath = bookMetadata.getFilePath();
            lumeMetadata.getBookMetaDataMap().remove(id);
-
-            LibraryLayout.bookSelf.removeBookDisplay(this);
+           LibraryLayout.bookSelf.removeBookDisplay(this);
         });
 
         bookOptionMenu.setAutoHide(true);

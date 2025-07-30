@@ -2,7 +2,9 @@ package com.example.lume.networking;
 
 import com.example.lume.components.Annotation;
 
-public class Message {
+import java.io.Serializable;
+
+public class Message implements Serializable {
     private String bookId;
     private Annotation annotation;
 

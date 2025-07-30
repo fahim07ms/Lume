@@ -1,6 +1,9 @@
 package com.example.lume;
 
 // Javafx built-in
+import com.example.lume.networking.Client;
+import com.example.lume.networking.NetworkManager;
+import com.example.lume.networking.Server;
 import com.example.lume.scenes.LibraryLayout;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Application;
@@ -21,8 +24,13 @@ public class Main extends Application {
     private final double stageWidth = Screen.getPrimary().getVisualBounds().getWidth();
     private final double stageHeight = Screen.getPrimary().getVisualBounds().getHeight();
 
+    public static final NetworkManager  networkManager = new NetworkManager();
+
     @Override
     public void start(Stage stage) throws IOException {
+        // Start networking
+        networkManager.start();
+
         // Set stage properties
         stage.setTitle("Lume");
         stage.setResizable(false);
@@ -42,6 +50,10 @@ public class Main extends Application {
         }
 
         stage.setOnCloseRequest(event -> {
+            // Stop networking
+            networkManager.stop();
+
+            // Read data from metadata file
             ObjectMapper objectMapper = new ObjectMapper();
             try {
                 objectMapper.writeValue(new File(System.getProperty("user.home") + "/.lume/metadata.json"), LibraryLayout.lumeMetadata);

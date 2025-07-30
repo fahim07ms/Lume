@@ -3,7 +3,9 @@ package com.example.lume.components;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Annotation {
+import java.io.Serializable;
+
+public class Annotation implements Serializable {
     private String parentId;
     private int start;
     private int end;

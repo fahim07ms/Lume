@@ -123,7 +123,7 @@
     -fx-padding: 10 20;
 }
 
-.highlighter-menu, .book-option-menu {
+.highlighter-menu, .book-option-menu, .list-btn-context-menu {
     -fx-background-color: rgba(54, 54, 56, 0.93);
     -fx-border-color: transparent;
     -fx-border-radius: 10px;
@@ -137,4 +137,19 @@
 .book-display-container:hover {
     -fx-background-color: rgba(63, 62, 62, 0.57);
     -fx-cursor: hand;
+}
+
+.ai-box {
+    -fx-background-color: -fx-primary-black;
+    -fx-border-color: transparent;
+    -fx-border-radius: 10px;
+    -fx-spacing: 10px;
+    -fx-padding: 10px;
+}
+
+.text-area {
+    -fx-control-inner-background: -fx-secondary-black;
+    -fx-border-color: rgba(87, 87, 87, 0.94);
+    -fx-border-radius: 10px;
+    -fx-padding: 10px;
 }

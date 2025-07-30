@@ -14,6 +14,7 @@ public class BookMetadata {
     private String filePath;
     private String category;
     private List<Annotation> annotations;
+    private List<Integer> bookmarkedSpreads;
 
     @JsonCreator
     public BookMetadata(
@@ -23,7 +24,8 @@ public class BookMetadata {
             @JsonProperty("currentSpread") int currentSpread,
             @JsonProperty("filePath") String filePath,
             @JsonProperty("category") String category,
-            @JsonProperty("annotations") List<Annotation> annotations
+            @JsonProperty("annotations") List<Annotation> annotations,
+            @JsonProperty("bookmarkedSpreads") List<Integer> bookmarkedSpreads
     ) {
         this.title = title;
         this.authors = authors;
@@ -32,6 +34,7 @@ public class BookMetadata {
         this.filePath = filePath;
         this.category = category;
         this.annotations = annotations != null ? annotations : new ArrayList<>();
+        this.bookmarkedSpreads = bookmarkedSpreads != null ? bookmarkedSpreads : new ArrayList<>();
     }
 
     public String getTitle() { return title; }
@@ -48,6 +51,8 @@ public class BookMetadata {
 
     public List<Annotation> getAnnotations() { return annotations; }
 
+    public List<Integer> getBookmarkedSpreads() { return bookmarkedSpreads; }
+
     public void setTitle(String title) { this.title = title; }
 
     public void setAuthors(List<String> authors) { this.authors = authors; }
@@ -61,4 +66,6 @@ public class BookMetadata {
     public void setCategory(String category) { this.category = category; }
 
     public void setAnnotations(List<Annotation> annotations) { this.annotations = annotations; }
+
+    public void setBookmarkedSpreads(List<Integer> bookmarkedSpreads) { this.bookmarkedSpreads = bookmarkedSpreads; }
 }

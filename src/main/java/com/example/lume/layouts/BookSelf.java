@@ -34,4 +34,8 @@ public class BookSelf extends GridPane {
             curRow--;
         } else curCol--;
     }
+
+    public boolean isEmpty() {
+        return (curCol == 0 && curRow == 0);
+    }
 }

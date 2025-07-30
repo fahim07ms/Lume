@@ -48,9 +48,9 @@ public class GutenbergScene extends BaseLayout {
 
         // Sub Title VBox - Library
         leftSidePanel.getChildren().addAll(titleText, subTitleLibrary, optionAllBooks);
-        optionAllBooks.getIconButton().setOnAction(e -> {
-            stage.setScene(new Scene(new LibraryLayout(stage), this.getHomeLayoutWidth(), this.getHomeLayoutHeight()));
-        });
+//        optionAllBooks.getIconButton().setOnAction(e -> {
+//            stage.setScene(new Scene(new LibraryLayout(stage), this.getHomeLayoutWidth(), this.getHomeLayoutHeight()));
+//        });
 
         // Sub Title Component - Catalog
         subTitleCatalog.setPadding(new Insets(30, 0, 10, 0));

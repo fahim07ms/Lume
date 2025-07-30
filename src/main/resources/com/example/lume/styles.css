@@ -153,3 +153,108 @@
     -fx-border-radius: 10px;
     -fx-padding: 10px;
 }
+
+.about-book-pane {
+    -fx-background-color: -fx-primary-black;
+}
+
+.ai-box {
+    -fx-background-color: #1e1e1e;
+    -fx-padding: 10px;
+}
+
+.chat-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.ai-input-box {
+    -fx-padding: 10px;
+    -fx-background-color: #2a2a2a;
+    -fx-border-color: #444;
+    -fx-border-width: 1 0 0 0;
+}
+
+.ai-box-textarea {
+    -fx-font-size: 16px;
+    -fx-control-inner-background: -fx-secondary-black;
+    -fx-text-fill: #e0e0e0;
+    -fx-prompt-text-fill: #888;
+}
+
+
+.chat-box-text {
+    -fx-fill: white;
+    -fx-font-size: 16px;
+}
+
+.user-box, .ai-box {
+    -fx-background-color: -fx-secondary-black;
+}
+
+.about-book-pane {
+    -fx-background-color: -fx-primary-black;
+}
+
+.about-book-title-bar {
+    -fx-background-color: -fx-primary-black;
+}
+
+.about-book-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-padding: 0;
+}
+
+.about-book-scroll-pane .scroll-bar:vertical {
+    -fx-background-color: -fx-primary-black;
+    -fx-pref-width: 10;
+    -fx-padding: 2;
+}
+
+.about-book-scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #555;
+    -fx-background-radius: 5;
+}
+
+.about-book-scroll-pane .scroll-bar:vertical .increment-button,
+.about-book-scroll-pane .scroll-bar:vertical .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 5;
+}
+
+.about-book-content-box {
+    -fx-padding: 20px;
+    -fx-spacing: 15px;
+    -fx-background-color: #1e1e1e;
+}
+
+.about-book-title {
+    -fx-text-alignment: center;
+}
+
+.about-book-authors {
+    -fx-font-size: 16px;
+    -fx-font-style: italic;
+    -fx-text-fill: #aaa;
+    -fx-text-alignment: center;
+    -fx-padding: 0 0 15px 0;
+}
+
+.detail-section {
+    -fx-spacing: 5px;
+    -fx-padding: 15px 0 0 0;
+    -fx-border-color: #444;
+    -fx-border-width: 1 0 0 0;
+}
+
+.detail-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.detail-content {
+    -fx-font-size: 14px;
+    -fx-fill: #c0c0c0;
+    -fx-line-spacing: 4px;
+}

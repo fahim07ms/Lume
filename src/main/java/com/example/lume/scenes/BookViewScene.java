@@ -3,6 +3,7 @@ package com.example.lume.scenes;
 import com.example.lume.Main;
 import com.example.lume.components.*;
 import com.example.lume.layouts.BaseLayout;
+import com.example.lume.components.ChatPane;
 import com.example.lume.layouts.TitleBar;
 import com.example.lume.networking.Message;
 import com.example.lume.networking.NetworkManager;
@@ -11,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.documentnode.epub4j.domain.*;
 import io.documentnode.epub4j.epub.EpubReader;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -97,6 +99,7 @@ public class BookViewScene extends BaseLayout {
     // EPub Book (epublib)
     Book book;
     private String bookId = null;
+    StringBuilder fullText = new StringBuilder();
 
 
     public BookViewScene(Stage stage, Scene prevScene, String filePath, LumeMetadata lumeMetadata) throws IOException {
@@ -228,45 +231,79 @@ public class BookViewScene extends BaseLayout {
 
         MenuItem aiBtn = new MenuItem("Ask AI");
         aiBtn.setOnAction(e -> {
-           Stage newStage = new Stage();
-           newStage.setResizable(false);
-           newStage.setTitle("Ask AI about " + book.getTitle());
-           newStage.setWidth(500);
-           newStage.setHeight(1000);
+            listBtnContextMenu.hide();
 
-            VBox aiBox = new VBox();
-            aiBox.setSpacing(10);
-            aiBox.getStyleClass().add("ai-box");
+            Stage newStage = new Stage();
+            newStage.setResizable(false);
+            newStage.setTitle("Ask AI about " + book.getTitle());
+            newStage.setWidth(500);
+            newStage.setHeight(1000);
+
+            BorderPane rootPane = new BorderPane();
+            rootPane.getStyleClass().add("ai-box");
+
+            ChatPane chatPane = new ChatPane();
+            rootPane.setCenter(chatPane);
+
+            HBox inputBox = new HBox(10);
+            inputBox.getStyleClass().add("ai-input-box");
+            inputBox.setAlignment(Pos.CENTER);
 
             TextArea textArea = new TextArea();
-            textArea.setMaxWidth(480);
-            textArea.setMaxHeight(120);
+            textArea.setPromptText("Ask a question...");
             textArea.getStyleClass().add("ai-box-textarea");
+            HBox.setHgrow(textArea, Priority.ALWAYS);
 
-            aiBox.setAlignment(Pos.BOTTOM_CENTER);
-            AiChat aiChat = new AiChat();
+            AiChat aiChat = new AiChat(book.getTitle(), fullText.toString(), Arrays.toString(book.getMetadata().getAuthors().toArray()));
 
-            SidePanelOption enterBtn = new SidePanelOption(250, 20, SEND_ICON, "Send");
-            enterBtn.getIconButton().setOnAction(e1 -> {
-                String query = textArea.getText();
+            SidePanelOption sendButton = new SidePanelOption(40, 40, SEND_ICON, "");
+
+            // --- Main Action Logic ---
+            sendButton.getIconButton().setOnAction(e1 -> {
+                String query = textArea.getText().trim();
+                if (query.isEmpty()) {
+                    return;
+                }
                 textArea.clear();
 
+                chatPane.addBubble(new ChatBox(query, ChatBox.Sender.USER));
 
+                ChatBox aiThinkingBubble = new ChatBox("Lume is thinking...", ChatBox.Sender.AI);
+                chatPane.addBubble(aiThinkingBubble);
+
+                Task<String> getResponseTask = new Task<>() {
+                    @Override
+                    protected String call() throws Exception {
+                        return aiChat.getResponse(query);
+                    }
+                };
+
+                getResponseTask.setOnSucceeded(event -> {
+                    String response = getResponseTask.getValue();
+                    aiThinkingBubble.setText(response);
+                });
+
+                getResponseTask.setOnFailed(event -> {
+                    aiThinkingBubble.setText("Sorry, I encountered an error. Please try again.");
+                    getResponseTask.getException().printStackTrace();
+                });
+
+                new Thread(getResponseTask).start();
             });
-            enterBtn.setAlignment(Pos.BOTTOM_RIGHT);
 
-            Scene aiScene = new Scene(aiBox, 500, 1000);
+            inputBox.getChildren().addAll(textArea, sendButton);
+            rootPane.setBottom(inputBox);
+
+            Scene aiScene = new Scene(rootPane, 500, 600); // Adjusted height
             try {
                 File file = new File("src/main/resources/com/example/lume/styles.css");
-                aiScene.getStylesheets().add("file:////" + file.getAbsolutePath().replace("\\", "/"));
-            } catch (NullPointerException ne) {
-                System.out.println(ne.getMessage());
+                aiScene.getStylesheets().add("file:///" + file.getAbsolutePath().replace("\\", "/"));
+            } catch (Exception ex) {
+                System.out.println("Could not load stylesheet for AI chat: " + ex.getMessage());
             }
 
-            aiBox.getChildren().addAll(textArea, enterBtn);
             newStage.setScene(aiScene);
             newStage.show();
-
         });
 
 
@@ -535,6 +572,8 @@ public class BookViewScene extends BaseLayout {
                 String content = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
                 Document doc = Jsoup.parse(content);
                 Element body = doc.body();
+
+                fullText.append(body.text());
 
                 String htmlContent = null;
                 if (body != null) {

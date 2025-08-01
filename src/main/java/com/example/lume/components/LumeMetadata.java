@@ -36,7 +36,7 @@ public class LumeMetadata {
     public LumeMetadata() {
         this.bookMetaDataMap = new HashMap<String, BookMetadata>();
         this.categoryMap = new HashMap<String, List<String>>();
-        this.settings = new Settings("dark", "Comfortaa", "16px");
+        this.settings = new Settings("dark", "Alice", "20px");
     }
 
     public void addBookMetadata(String uuid, BookMetadata bookMetadata) {

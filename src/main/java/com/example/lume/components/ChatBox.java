@@ -1,8 +1,10 @@
 package com.example.lume.components;
 
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
@@ -20,9 +22,12 @@ public class ChatBox extends HBox {
 
         messageText = new Text(message);
         messageText.getStyleClass().add("chat-box-text");
+        messageText.setLineSpacing(2);
 
         TextFlow textFlow = new TextFlow(messageText);
-        textFlow.getStyleClass().add("chat- box");
+        textFlow.getStyleClass().add("chat-box");
+        textFlow.setPadding(new Insets(10, 10, 10, 10));
+        messageText.setStyle("-fx-font-size: 18px; -fx-font-family: Alice; -fx-font-weight: 500; -fx-spacing: 30px;");
 
         if (sender == Sender.USER) {
             this.setAlignment(Pos.CENTER_RIGHT);

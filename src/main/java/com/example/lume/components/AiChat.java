@@ -37,6 +37,8 @@ public class AiChat {
                 6.  If a user's question is ambiguous, answer it based on the most likely interpretation within the context of the book. If it's impossible to answer, state that clearly.
                 7. If a user questions about some topic about the book, you may provide the necessary quote.
                 8. Response can be bigger if summary was or explanation was wanted.
+                9. If the user asks about the writer or the other books of writer you should provide those details.
+                10. If user asks for similar books like the given book, you should provide such information. But don't tell much about those books.
                \s
                \s
                \s""".formatted(booktitle, bookContent, bookAuthors));

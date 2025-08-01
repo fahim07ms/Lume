@@ -6,7 +6,6 @@ import com.example.lume.layouts.BaseLayout;
 import com.example.lume.components.ChatPane;
 import com.example.lume.layouts.TitleBar;
 import com.example.lume.networking.Message;
-import com.example.lume.networking.NetworkManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.documentnode.epub4j.domain.*;
@@ -14,10 +13,10 @@ import io.documentnode.epub4j.epub.EpubReader;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -27,9 +26,9 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.SVGPath;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.jsoup.Jsoup;
@@ -44,6 +43,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class BookViewScene extends BaseLayout {
@@ -200,66 +200,53 @@ public class BookViewScene extends BaseLayout {
         });
         saveBtn.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN));
 
-//        sharedReadingBtn.getStyleClass().add("shared-reading-btn");
-//        sharedReadingBtn.setOnAction(e -> {
-//           Stage newStage = new Stage();
-//           newStage.setTitle(stage.getTitle());
-//           newStage.setResizable(false);
-//           newStage.setWidth(stage.getWidth());
-//           newStage.setHeight(stage.getHeight());
-//           newStage.initStyle(StageStyle.UNDECORATED);
-//
-//           Scene bookViewScene = null;
-//           try {
-//               bookViewScene = new Scene(new BookViewScene(newStage, prevScene, filePath, lumeMetadata), this.getHomeLayoutWidth(), this.getHomeLayoutHeight());
-//           } catch (IOException ex) {
-//               System.out.println(ex.getMessage());
-//           }
-//
-//            try {
-//                File file = new File("src/main/resources/com/example/lume/styles.css");
-//                bookViewScene.getStylesheets().add("file:////" + file.getAbsolutePath().replace("\\", "/"));
-//            } catch (NullPointerException ne) {
-//                System.out.println(ne.getMessage());
-//            }
-//
-//            Main.networkManager.start();
-//
-//           newStage.setScene(bookViewScene);
-//           newStage.show();
-//        });
+        MenuItem aiBtn = new MenuItem("Ask Lume AI");
+        AtomicReference<AiChat> aiChat = new AtomicReference<>();
+        Stage newStage = new Stage();
+        newStage.setResizable(false);
+        newStage.setWidth(500);
+        newStage.setHeight(this.getHomeLayoutHeight() - 100);
+        newStage.initStyle(StageStyle.UNDECORATED);
 
-        MenuItem aiBtn = new MenuItem("Ask AI");
+        TitleBar titleBar = new TitleBar(500, 100, newStage);
+        titleBar.setTitleBarText("Ask Lume AI about " + book.getTitle());
+
+        BorderPane rootPane = new BorderPane();
+        ChatPane chatPane = new ChatPane();
+        HBox inputBox = new HBox();
+        TextArea textArea = new TextArea();
+        ButtonIcon sendButton = new ButtonIcon(SEND_ICON);
+
+        rootPane.getStyleClass().add("ai-root-pane-box");
+        rootPane.setTop(titleBar);
+
+        rootPane.setCenter(chatPane);
+        chatPane.setPadding(new Insets(10, 10, 10, 10));
+
+        inputBox.getStyleClass().add("ai-input-box");
+        inputBox.setAlignment(Pos.CENTER);
+        inputBox.setPrefHeight(120);
+        inputBox.setSpacing(10);
+        textArea.maxWidth(400);
+        textArea.setBorder(new Border(new BorderStroke(Color.rgb(87, 87, 87, 0.94), BorderStrokeStyle.SOLID, null, new BorderWidths(0.5, 0.5, 0.5, 0.5))));
+        textArea.setWrapText(true);
+        textArea.setPromptText("Ask a question...");
+
+        textArea.getStyleClass().add("ai-box-textarea");
+        HBox.setHgrow(textArea, Priority.ALWAYS);
+        textArea.setStyle("-fx-font-size: 18px;");
+
+        final boolean[] notAdded = {true};
+
         aiBtn.setOnAction(e -> {
             listBtnContextMenu.hide();
 
-            Stage newStage = new Stage();
-            newStage.setResizable(false);
-            newStage.setTitle("Ask AI about " + book.getTitle());
-            newStage.setWidth(500);
-            newStage.setHeight(1000);
 
-            BorderPane rootPane = new BorderPane();
-            rootPane.getStyleClass().add("ai-box");
+            if (aiChat.get() == null) {
+                aiChat.set(new AiChat(book.getTitle(), fullText.toString(), Arrays.toString(book.getMetadata().getAuthors().toArray())));
+            }
 
-            ChatPane chatPane = new ChatPane();
-            rootPane.setCenter(chatPane);
-
-            HBox inputBox = new HBox(10);
-            inputBox.getStyleClass().add("ai-input-box");
-            inputBox.setAlignment(Pos.CENTER);
-
-            TextArea textArea = new TextArea();
-            textArea.setPromptText("Ask a question...");
-            textArea.getStyleClass().add("ai-box-textarea");
-            HBox.setHgrow(textArea, Priority.ALWAYS);
-
-            AiChat aiChat = new AiChat(book.getTitle(), fullText.toString(), Arrays.toString(book.getMetadata().getAuthors().toArray()));
-
-            SidePanelOption sendButton = new SidePanelOption(40, 40, SEND_ICON, "");
-
-            // --- Main Action Logic ---
-            sendButton.getIconButton().setOnAction(e1 -> {
+            sendButton.setOnAction(e1 -> {
                 String query = textArea.getText().trim();
                 if (query.isEmpty()) {
                     return;
@@ -274,7 +261,7 @@ public class BookViewScene extends BaseLayout {
                 Task<String> getResponseTask = new Task<>() {
                     @Override
                     protected String call() throws Exception {
-                        return aiChat.getResponse(query);
+                        return aiChat.get().getResponse(query);
                     }
                 };
 
@@ -291,27 +278,122 @@ public class BookViewScene extends BaseLayout {
                 new Thread(getResponseTask).start();
             });
 
-            inputBox.getChildren().addAll(textArea, sendButton);
-            rootPane.setBottom(inputBox);
+            if (notAdded[0]) {
+                inputBox.getChildren().addAll(textArea, sendButton);
+                rootPane.setBottom(inputBox);
 
-            Scene aiScene = new Scene(rootPane, 500, 600); // Adjusted height
-            try {
-                File file = new File("src/main/resources/com/example/lume/styles.css");
-                aiScene.getStylesheets().add("file:///" + file.getAbsolutePath().replace("\\", "/"));
-            } catch (Exception ex) {
-                System.out.println("Could not load stylesheet for AI chat: " + ex.getMessage());
+                Scene aiScene = new Scene(rootPane, 500, 600); // Adjusted height
+                try {
+                    File file = new File("src/main/resources/com/example/lume/styles.css");
+                    aiScene.getStylesheets().add("file:///" + file.getAbsolutePath().replace("\\", "/"));
+                } catch (Exception ex) {
+                    System.out.println("Could not load stylesheet for AI chat: " + ex.getMessage());
+                }
+
+                newStage.setScene(aiScene);
+
+                notAdded[0] = false;
             }
 
-            newStage.setScene(aiScene);
             newStage.show();
         });
 
+        MenuItem settingsBtn = new MenuItem("Edit View");
+        settingsBtn.setOnAction(e -> {
+            listBtnContextMenu.hide();
+            launchViewSettingsWindow();
+        });
 
-        listBtnContextMenu.getItems().addAll(saveBtn, aiBtn);
+
+        listBtnContextMenu.getItems().addAll(saveBtn, aiBtn, settingsBtn);
 
         button.setOnContextMenuRequested(event -> {
             listBtnContextMenu.show(button, event.getScreenX(), event.getScreenY());
         });
+    }
+
+    private void launchViewSettingsWindow() {
+        Stage settingsStage = new Stage();
+        settingsStage.initModality(Modality.APPLICATION_MODAL); // Blocks interaction with the main window
+        settingsStage.initOwner(this.getScene().getWindow());
+        settingsStage.setResizable(false);
+        settingsStage.setTitle("Edit View");
+
+        VBox rootPane = new VBox();
+        rootPane.getStyleClass().add("settings-pane");
+
+        Label fontLabel = new Label("Font");
+        fontLabel.getStyleClass().add("setting-section-title");
+
+        ComboBox<String> fontComboBox = new ComboBox<>();
+        fontComboBox.getSelectionModel().selectFirst();
+        fontComboBox.getSelectionModel().select(lumeMetadata.getSettings().getFont().split("px")[0]);
+        Settings.FONTS.keySet().forEach(fontName -> {
+            fontComboBox.getItems().add(fontName);
+        });
+
+        fontComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            lumeMetadata.getSettings().setFont(Settings.FONTS.get(newVal));
+            System.out.println(Settings.FONTS.get(newVal));
+            System.out.println(newVal);
+            bookWebEngine.executeScript("document.body.style.fontFamily = '%s';".formatted(lumeMetadata.getSettings().getFont()));
+        });
+
+        fontComboBox.getStyleClass().add("font-combo-box");
+        HBox.setHgrow(fontComboBox, Priority.ALWAYS);
+
+        HBox fontBox = new HBox(fontComboBox);
+        fontBox.getStyleClass().add("setting-control-box");
+
+        Label fontSizeLabel = new Label("Font Size");
+        fontSizeLabel.getStyleClass().add("setting-section-title");
+
+        Slider fontSizeSlider = new Slider(16, 32, (int) Integer.parseInt(lumeMetadata.getSettings().getFontSize().split("px")[0]));
+        fontSizeSlider.setMajorTickUnit(2);
+        fontSizeSlider.setMinorTickCount(1);
+        fontSizeSlider.setShowTickMarks(true);
+        fontSizeSlider.setShowTickLabels(true);
+
+        Label sizeIndicator = new Label(String.format("%.0fpt", fontSizeSlider.getValue()));
+        sizeIndicator.getStyleClass().add("slider-indicator");
+
+        fontSizeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            newVal = newVal.intValue();
+            sizeIndicator.setText(String.format("%dpt", newVal));
+            lumeMetadata.getSettings().setFontSize(String.format("%dpx", newVal));
+            bookWebEngine.executeScript("document.body.style.fontSize = '%spx';".formatted(newVal));
+            fontSizeSlider.setValue(newVal.doubleValue());
+        });
+
+        GridPane sliderPane = new GridPane();
+        sliderPane.getStyleClass().add("setting-control-box");
+        sliderPane.add(fontSizeSlider, 0, 0);
+        sliderPane.add(sizeIndicator, 1, 0);
+        GridPane.setHgrow(fontSizeSlider, Priority.ALWAYS);
+
+        // Add all sections to the root pane
+        rootPane.getChildren().addAll(
+                createSettingSection(fontLabel, fontBox),
+                createSettingSection(fontSizeLabel, sliderPane)
+        );
+
+        Scene scene = new Scene(rootPane, 350, -1);
+        try {
+            File file = new File("src/main/resources/com/example/lume/styles.css");
+            scene.getStylesheets().add("file:///" + file.getAbsolutePath().replace("\\", "/"));
+        } catch (Exception ex) {
+            System.out.println("Could not load stylesheet for settings: " + ex.getMessage());
+        }
+
+        settingsStage.setScene(scene);
+        settingsStage.show();
+    }
+
+    private VBox createSettingSection(Label title, Node control) {
+        VBox section = new VBox(5); // 5px spacing
+        section.getStyleClass().add("setting-section");
+        section.getChildren().addAll(title, control);
+        return section;
     }
 
     private void applyRemoteAnnotation(Message message) {
@@ -780,6 +862,7 @@ public class BookViewScene extends BaseLayout {
 
         // Load content
         bookWebEngine.loadContent(html);
+        bookWebEngine.setJavaScriptEnabled(true);
 
         // When content fully loads
         bookWebEngine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
@@ -792,6 +875,12 @@ public class BookViewScene extends BaseLayout {
                         // Calculate the spread and display the current one
                         if (totalSpreads == 0) calculateTotalSpreads();
                         displayCurrentSpread();
+
+                        bookWebEngine.executeScript(String.format("""
+                            document.body.style.fontSize = '%s';
+                            document.body.style.fontFamily = '%s';
+                            """, lumeMetadata.getSettings().getFontSize(), lumeMetadata.getSettings().getFont()));
+
 
                         if (!annotations.isEmpty()) {
                             ObjectMapper objectMapper = new ObjectMapper();

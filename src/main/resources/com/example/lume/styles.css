@@ -36,10 +36,6 @@
     -fx-font-weight: 900;
 }
 
-.option {
-
-}
-
 .option-btn {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
@@ -139,57 +135,50 @@
     -fx-cursor: hand;
 }
 
-.ai-box {
+.ai-root-pane-box {
     -fx-background-color: -fx-primary-black;
     -fx-border-color: transparent;
     -fx-border-radius: 10px;
     -fx-spacing: 10px;
-    -fx-padding: 10px;
 }
 
-.text-area {
+.ai-box-text-area {
     -fx-control-inner-background: -fx-secondary-black;
-    -fx-border-color: rgba(87, 87, 87, 0.94);
     -fx-border-radius: 10px;
     -fx-padding: 10px;
+    -fx-border-width: 1px;
 }
 
 .about-book-pane {
     -fx-background-color: -fx-primary-black;
 }
 
-.ai-box {
-    -fx-background-color: #1e1e1e;
-    -fx-padding: 10px;
+.chat-container {
+    -fx-background-color: -fx-secondary-black;
 }
 
 .chat-scroll-pane {
-    -fx-background-color: transparent;
+    -fx-background-color: -fx-secondary-black;
     -fx-background: transparent;
+    -fx-padding: 10;
 }
 
 .ai-input-box {
-    -fx-padding: 10px;
-    -fx-background-color: #2a2a2a;
+    -fx-padding: 5px;
+    -fx-background-color: -fx-primary-black;
     -fx-border-color: #444;
     -fx-border-width: 1 0 0 0;
 }
 
 .ai-box-textarea {
-    -fx-font-size: 16px;
     -fx-control-inner-background: -fx-secondary-black;
     -fx-text-fill: #e0e0e0;
     -fx-prompt-text-fill: #888;
 }
 
-
-.chat-box-text {
-    -fx-fill: white;
-    -fx-font-size: 16px;
-}
-
 .user-box, .ai-box {
-    -fx-background-color: -fx-secondary-black;
+    -fx-background-color: rgba(75, 74, 74, 0.42);
+    -fx-background: transparent;
 }
 
 .about-book-pane {
@@ -206,19 +195,19 @@
     -fx-padding: 0;
 }
 
-.about-book-scroll-pane .scroll-bar:vertical {
+.about-book-scroll-pane .scroll-bar:vertical, .chat-scroll-pane .scroll-bar:vertical {
     -fx-background-color: -fx-primary-black;
     -fx-pref-width: 10;
     -fx-padding: 2;
 }
 
-.about-book-scroll-pane .scroll-bar:vertical .thumb {
+.about-book-scroll-pane .scroll-bar:vertical .thumb, .chat-scroll-pane .scroll-bar:vertical .thumb {
     -fx-background-color: #555;
     -fx-background-radius: 5;
 }
 
-.about-book-scroll-pane .scroll-bar:vertical .increment-button,
-.about-book-scroll-pane .scroll-bar:vertical .decrement-button {
+.about-book-scroll-pane .scroll-bar:vertical .increment-button, .chat-scroll-pane .scroll-bar:vertical .increment-button,
+.about-book-scroll-pane .scroll-bar:vertical .decrement-button, .chat-scroll-pane .scroll-bar:vertical .decrement-button {
     -fx-background-color: transparent;
     -fx-padding: 5;
 }
@@ -257,4 +246,86 @@
     -fx-font-size: 14px;
     -fx-fill: #c0c0c0;
     -fx-line-spacing: 4px;
+}
+
+.settings-pane {
+    -fx-background-color: #252529ff;
+    -fx-padding: 20px;
+    -fx-spacing: 25px;
+}
+
+.setting-section {
+    -fx-spacing: 8px;
+}
+
+.setting-section-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #c0c0c0;
+}
+
+.setting-control-box {
+    -fx-spacing: 5px;
+    -fx-alignment: center-left;
+}
+
+.font-combo-box {
+    -fx-background-color: #444;
+    -fx-border-color: #555;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-font-size: 14px;
+    -fx-pref-width: 200px;
+    -fx-text-fill: #e0e0e0;
+}
+
+/* Style for the dropdown arrow area */
+.font-combo-box .arrow-button {
+    -fx-background-color: #444;
+    -fx-background-radius: 0 5px 5px 0;
+}
+
+.font-combo-box .arrow {
+    -fx-background-color: #c0c0c0;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: #333;
+    -fx-border-color: #555;
+}
+
+.combo-box-popup .list-cell {
+    -fx-background-color: #333;
+    -fx-text-fill: #e0e0e0;
+    -fx-padding: 8px 12px;
+}
+
+.combo-box-popup .list-cell:hover {
+    -fx-background-color: #007AFF;
+    -fx-text-fill: white;
+}
+
+.combo-box-popup .list-cell:filled:selected {
+    -fx-background-color: #0056b3;
+    -fx-text-fill: white;
+}
+
+.slider .track {
+    -fx-background-color: #444;
+    -fx-pref-height: 5px;
+}
+
+.slider .thumb {
+    -fx-background-color: #007AFF;
+}
+
+.slider .axis {
+    -fx-tick-label-fill: #aaa;
+    -fx-font-size: 10px;
+}
+
+.slider-indicator {
+    -fx-text-fill: #c0c0c0;
+    -fx-font-size: 14px;
+    -fx-padding: 0 0 0 15px;
 }

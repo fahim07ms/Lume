@@ -11,6 +11,7 @@ module com.example.lume {
     requires jdk.jsobject;
     requires java.net.http;
     requires google.genai;
+    requires org.checkerframework.checker.qual;
 
     opens com.example.lume to javafx.fxml;
     exports com.example.lume;

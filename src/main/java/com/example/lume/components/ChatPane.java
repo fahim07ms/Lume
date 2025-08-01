@@ -11,6 +11,7 @@ public class ChatPane extends ScrollPane {
         this.getStyleClass().add("scroll-pane");
         chatContainer = new VBox();
         chatContainer.getStyleClass().add("chat-container");
+        chatContainer.setSpacing(10);
 
         // Make the VBox grow with the ScrollPane's width
         chatContainer.prefWidthProperty().bind(this.widthProperty().subtract(20));

@@ -66,6 +66,8 @@ Follow these instructions to get a local copy up and running.
 3.  **Build and Run with Maven:**
     Navigate to the root directory of the project in your terminal and run the following command:
     ```sh
-    mvn clean javafx:run
+    ./mvnw clean javafx:run
     ```
     Maven will download the necessary dependencies and launch the application.
+---
+Note: The CSS may not load in some Windows computers. 
